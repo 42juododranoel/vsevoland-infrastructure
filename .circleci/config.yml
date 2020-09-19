@@ -1,0 +1,108 @@
+version: 2.1
+
+defaults: &defaults
+  docker:
+    - image: circleci/python:3.7-stretch
+
+jobs:
+  backup:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: install requerements
+          command: |
+            pip install --upgrade pip
+            pip install python-dateutil python-magic
+            sudo apt-get --no-install-recommends install -y pv
+            mkdir -p ~/.ssh
+            touch ~/.ssh/config
+            cp .circleci/known_hosts ~/.ssh/
+            export S3CMD_RELEASE=2.1.0
+            wget https://github.com/s3tools/s3cmd/releases/download/v${S3CMD_RELEASE}/s3cmd-${S3CMD_RELEASE}.tar.gz
+            tar xvf s3cmd-${S3CMD_RELEASE}.tar.gz
+            ln -s s3cmd-${S3CMD_RELEASE}/s3cmd s3cmd
+            chmod +x s3cmd
+
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+
+      - run:
+          name: Install Ansible
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+      - run:
+          name: Install ansible roles
+          command: |
+            . venv/bin/activate
+            ansible-galaxy install -r requirements.yml
+
+      - save_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+          paths:
+            - "venv"
+            - "~/.ansible"
+
+      - run:
+          name: Lint the playbook
+          command: |
+            . venv/bin/activate
+            ansible-lint --exclude ~/.ansible/roles/andrewsomething.do-agent/tasks/main.yml
+
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+
+      - run:
+          name: Restore ansible vault key
+          command: echo ${ANSIBLE_VAULT_KEY} > .vault-key
+
+      - run:
+          name: Run the play
+          command: |
+            . venv/bin/activate
+            ansible-playbook -i hosts site.yml --limit vsevoland
+
+workflows:
+  version: 2
+  continuous-update:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+
+  nightly-build:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+      - schedule:
+          cron: "0 12 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - backup

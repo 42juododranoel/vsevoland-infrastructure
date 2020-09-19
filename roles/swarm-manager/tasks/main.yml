@@ -1,0 +1,8 @@
+---
+- include_tasks: docker_daemon.yml
+- include_tasks: docker_swarm.yml
+- include_tasks: ci_cd.yml
+- include_tasks: postgres_client.yml
+
+- include_tasks: ../stacks/site.yml
+- include_tasks: ../stacks/vsevoland.yml

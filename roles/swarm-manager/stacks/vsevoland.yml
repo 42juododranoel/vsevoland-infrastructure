@@ -1,0 +1,113 @@
+---
+- name: Make sure stack directory is present
+  file:
+    path: /srv/vsevoland
+    state: directory
+
+- name: Deploy environment file
+  template:
+    src: templates/vsevoland.env.j2
+    dest: /srv/vsevoland/env
+
+- name: Deploy the stack
+  docker_stack:
+    name: vsevoland
+    resolve_image: never
+    with_registry_auth: true
+    compose:
+      - version: '3.6'
+        x-deploy-options: &deploy
+          update_config:
+            parallelism: 2
+            delay: 3s
+            failure_action: rollback
+            order: start-first
+
+        x-defaults: &defaults
+          env_file:
+            - /srv/vsevoland/env
+
+          networks:
+            - stacknet
+
+        services:
+          backend:
+            <<: *defaults
+            image: vsevolodskripnik/vsevoland-backend
+
+            networks:
+              - stacknet
+              - traefiknet
+
+            deploy:
+              <<: *deploy
+              labels:
+                  - "traefik.enable=true"
+                  - "traefik.port=8000"
+                  - "traefik.frontend.rule=Host:{{ ','.join(absolute_host) }}; PathPrefix:/api"
+                  - "traefik.docker.network=traefiknet"
+
+          frontend:
+            image: vsevolodskripnik/vsevoland-frontend
+            environment:
+              SENTRY_DSN: "{{ frontend_sentry_dsn }}"
+              ENVIRONMENT: "{{ env }}"
+              BACKEND_URL: "{{ backed_url }}"
+              ABSOLUTE_URL: "{{ absolute_url }}"
+            networks:
+              - stacknet
+              - traefiknet
+            deploy:
+              <<: *deploy
+              replicas: 2
+              labels:
+                  - "traefik.enable=true"
+                  - "traefik.port=3000"
+                  - "traefik.common.frontend.rule=Host:{{ ','.join(absolute_host) }}"
+                  - "traefik.azure.frontend.rule=Host:{{ ','.join(absolute_host) }};Path:/.well-known/microsoft-identity-association.json"
+                  - "traefik.azure.frontend.headers.customResponseHeaders=Content-Type:application/json||Content-Length:112"
+                  - "traefik.docker.network=traefiknet"
+
+          worker:
+            <<: *defaults
+            image: vsevolodskripnik/vsevoland-backend
+            command: celery -A app worker -Q celery -c 2 -n 'default@%h' --max-tasks-per-child 50
+            healthcheck:
+              disable: true
+
+          scheduler:
+            <<: *defaults
+            image: vsevolodskripnik/vsevoland-backend
+            command: celery -A app beat
+            healthcheck:
+              disable: true
+
+          worker-monitoring:
+            <<: *defaults
+            image: vsevolodskripnik/vsevoland-backend
+            command: celery -A app flower --url-prefix=flower
+            healthcheck:
+              disable: true
+
+            networks:
+              - stacknet
+              - traefiknet
+
+            deploy:
+              labels:
+                  - "traefik.enable=true"
+                  - "traefik.port=5555"
+                  - "traefik.frontend.rule=Host:{{ ','.join(absolute_host) }}; PathPrefixStrip:/flower"
+                  - "traefik.docker.network=traefiknet"
+
+          redis:
+            image: redis:6.0.2-alpine
+            networks:
+              - stacknet
+
+        networks:
+          stacknet:
+            driver: overlay
+
+          traefiknet:
+            external: true

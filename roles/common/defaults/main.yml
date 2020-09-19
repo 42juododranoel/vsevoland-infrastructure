@@ -1,0 +1,4 @@
+users:
+  - login: vsevolod-skripnik
+    state: present
+    key: https://github.com/vsevolod-skripnik.keys

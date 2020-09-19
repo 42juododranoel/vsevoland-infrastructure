@@ -1,0 +1,96 @@
+---
+- name: Make sure stack directory is present
+  file:
+    path: /srv/site
+    state: directory
+
+- name: Make sure acme.json is present
+  copy:
+    dest: /srv/site/acme.json
+    content: ""
+    force: no
+    mode: 0600
+
+- name: Make sure traefik configuration is actual
+  template:
+    src: templates/traefik.toml.j2
+    dest: /srv/site/traefik.toml
+
+- name: Make sure ingress network is up
+  docker_network:
+    name: traefiknet
+    driver: overlay
+
+- name: Deploy the main site stack
+  docker_stack:
+    name: site
+    resolve_image: never
+    with_registry_auth: true
+    prune: yes
+    compose:
+      - version: "3.6"
+
+        services:
+          traefik:
+            image: traefik:1.7.3
+            ports:
+              - "80:80"
+              - "443:443"
+
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock:ro
+              - /srv/site/acme.json:/acme.json
+              - /srv/site/traefik.toml:/traefik.toml
+
+            networks:
+              - traefiknet
+
+          periodic-prune:
+            image: f213/periodic-docker-prune:1.1.1
+
+            deploy:
+              mode: global
+
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+
+          portainer-agent:
+            image: portainer/agent:1.5.1
+            environment:
+              AGENT_CLUSTER_ADDR: tasks.portainer-agent
+            deploy:
+              mode: global
+            volumes:
+              - /var/run/docker.sock:/var/run/docker.sock
+              - /var/lib/docker/volumes:/var/lib/docker/volumes
+            networks:
+              - portainernet
+
+          portainer:
+            image: portainer/portainer:1.23.2
+            command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify
+            deploy:
+              mode: replicated
+              placement:
+                constraints: [node.role == manager]
+              labels:
+                - "traefik.enable=true"
+                - "traefik.port=9000"
+                - "traefik.frontend.rule=Host:{{ ','.join(absolute_host) }}; PathPrefixStrip:/cluster-mgmt"
+                - "traefik.docker.network=traefiknet"
+
+            volumes:
+              - portainer_data:/data
+
+            networks:
+              - portainernet
+              - traefiknet
+
+        networks:
+          traefiknet:
+            external: true
+          portainernet:
+            driver: overlay
+
+        volumes:
+          portainer_data:

@@ -1,0 +1,5 @@
+---
+app_user: nobody
+app_group: nogroup
+letsencrypt_email: vsevolod_skripnik@protonmail.com
+swarm_manager_address: eth1

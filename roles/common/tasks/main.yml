@@ -1,0 +1,22 @@
+---
+- name: Allow members of the 'sudo' group passwordless sudo
+  copy:
+    content: "%sudo ALL=(ALL:ALL) NOPASSWD:ALL"
+    dest: /etc/sudoers.d/10-passwordless-sudo-for-sudo-group
+    mode: 0440
+
+- name: Add accounts
+  user:
+    name: "{{ item.login }}"
+    state: "{{ item.state }}"
+    groups: "root, sudo, {{ app_group }}"
+    shell: /bin/bash
+  loop: "{{ users }}"
+
+- name: Add ssh keys
+  authorized_key:
+    user: "{{ item.login }}"
+    key: "{{ item.key }}"
+    exclusive: yes
+  when: "item.state == 'present'"
+  loop: "{{ users }}"

@@ -1,0 +1,11 @@
+---
+- name: Make sure swarm is initialized
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ swarm_manager_address }}"
+    listen_addr: "{{ swarm_manager_address }}"
+
+- name: Log in to the hub.docker.com
+  docker_login:
+    username: "{{ docker_login }}"
+    password: "{{ docker_password }}"
