@@ -5,7 +5,7 @@
 
 - name: Add docker.com apt repository
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
 
 - name: Install required packages
   apt:

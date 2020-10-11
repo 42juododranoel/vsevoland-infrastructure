@@ -7,5 +7,5 @@
 
 - name: Log in to the hub.docker.com
   docker_login:
-    username: "{{ docker_login }}"
-    password: "{{ docker_password }}"
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"

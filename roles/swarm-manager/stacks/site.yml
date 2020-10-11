@@ -76,7 +76,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.port=9000"
-                - "traefik.frontend.rule=Host:{{ ','.join(absolute_host) }}; PathPrefixStrip:/cluster-mgmt"
+                - "traefik.frontend.rule=Host:{{ absolute_host }}; PathPrefixStrip:/cluster-mgmt"
                 - "traefik.docker.network=traefiknet"
 
             volumes:
