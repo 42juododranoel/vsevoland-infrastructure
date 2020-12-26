@@ -63,21 +63,21 @@
                   - "traefik.azure.frontend.headers.customResponseHeaders=Content-Type:application/json||Content-Length:112"
                   - "traefik.docker.network=traefiknet"
 
-          worker:
+          celery-worker:
             <<: *defaults
             image: vsevolodskripnik/vsevoland-backend
             command: celery -A app worker -Q celery -c 2 -n 'default@%h' --max-tasks-per-child 50
             healthcheck:
               disable: true
 
-          scheduler:
+          celery-beat:
             <<: *defaults
             image: vsevolodskripnik/vsevoland-backend
             command: celery -A app beat
             healthcheck:
               disable: true
 
-          worker-monitoring:
+          celery-flower:
             <<: *defaults
             image: vsevolodskripnik/vsevoland-backend
             command: celery -A app flower --url-prefix=flower
