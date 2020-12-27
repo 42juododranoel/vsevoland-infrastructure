@@ -73,7 +73,7 @@ jobs:
           command: echo ${ANSIBLE_VAULT_KEY} > .vault-key
 
       - run:
-          name: Add known hosts back after they have been overriden by pip
+          name: Add known hosts back after they have been overriden
           command: cat .circleci/known_hosts >> ~/.ssh/known_hosts
 
       - run:
