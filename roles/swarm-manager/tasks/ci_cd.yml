@@ -8,7 +8,7 @@
 - name: Make sure CI ssh keys are present
   authorized_key:
     user: circle
-    key: "{{ ci_key }}"
+    key: "{{ circle_public_key }}"
 
 - name: Make sure CI user is able to access docker registry
   become: yes

@@ -44,7 +44,7 @@
               labels:
                   - "traefik.enable=true"
                   - "traefik.port=8000"
-                  - "traefik.frontend.rule=Host:{{ absolute_host }}; PathPrefix:/api"
+                  - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefix:/api"
                   - "traefik.docker.network=traefiknet"
 
           frontend:
@@ -58,8 +58,8 @@
               labels:
                   - "traefik.enable=true"
                   - "traefik.port=3000"
-                  - "traefik.common.frontend.rule=Host:{{ absolute_host }}"
-                  - "traefik.azure.frontend.rule=Host:{{ absolute_host }};Path:/.well-known/microsoft-identity-association.json"
+                  - "traefik.common.frontend.rule=Host:{{ domain_name }}"
+                  - "traefik.azure.frontend.rule=Host:{{ domain_name }};Path:/.well-known/microsoft-identity-association.json"
                   - "traefik.azure.frontend.headers.customResponseHeaders=Content-Type:application/json||Content-Length:112"
                   - "traefik.docker.network=traefiknet"
 
@@ -92,7 +92,7 @@
               labels:
                   - "traefik.enable=true"
                   - "traefik.port=5555"
-                  - "traefik.frontend.rule=Host:{{ absolute_host }}; PathPrefixStrip:/flower"
+                  - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefixStrip:/flower"
                   - "traefik.docker.network=traefiknet"
 
           redis:
