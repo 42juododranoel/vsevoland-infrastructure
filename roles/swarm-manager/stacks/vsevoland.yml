@@ -50,7 +50,6 @@
           frontend:
             image: vsevolodskripnik/vsevoland-frontend
             environment:
-              ENVIRONMENT: "{{ env }}"
               BACKEND_URL: "{{ backend_url }}"
               ABSOLUTE_URL: "{{ domain_name }}"
             networks:
