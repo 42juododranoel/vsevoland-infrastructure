@@ -49,6 +49,11 @@
 
           frontend:
             image: vsevolodskripnik/vsevoland-frontend
+            environment:
+              SENTRY_DSN: "{{ frontend_sentry_dsn }}"
+              ENVIRONMENT: "{{ env }}"
+              BACKEND_URL: "{{ backend_url }}"
+              ABSOLUTE_URL: "{{ domain_name }}"
             networks:
               - stacknet
               - traefiknet
