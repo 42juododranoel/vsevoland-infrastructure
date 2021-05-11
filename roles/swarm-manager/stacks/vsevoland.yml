@@ -50,7 +50,7 @@
           frontend:
             image: vsevolodskripnik/vsevoland-frontend
             environment:
-              ABSOLUTE_URL: "{{ domain_name }}"
+              DOMAIN_NAME: "{{ domain_name }}"
             networks:
               - stacknet
               - traefiknet
