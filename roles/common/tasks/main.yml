@@ -9,7 +9,7 @@
   user:
     name: "{{ item.login }}"
     state: "{{ item.state }}"
-    groups: "root, sudo, {{ app_group }}"
+    groups: "root, sudo, nogroup"
     shell: /bin/bash
   loop: "{{ users }}"
 

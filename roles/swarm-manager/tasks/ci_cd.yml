@@ -2,7 +2,7 @@
 - name: Make sure CI account is added
   user:
     name: circle
-    groups: "root, sudo, {{ app_group }}, docker"
+    groups: "root, sudo, nogroup, docker"
     shell: /bin/bash
 
 - name: Make sure CI ssh keys are present
