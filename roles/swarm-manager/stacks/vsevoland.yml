@@ -31,22 +31,6 @@
             - stacknet
 
         services:
-          backend:
-            <<: *defaults
-            image: vsevolodskripnik/vsevoland-backend
-
-            networks:
-              - stacknet
-              - traefiknet
-
-            deploy:
-              <<: *deploy
-              labels:
-                  - "traefik.enable=true"
-                  - "traefik.port=8000"
-                  - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefix:/api"
-                  - "traefik.docker.network=traefiknet"
-
           frontend:
             image: vsevolodskripnik/vsevoland-frontend
             environment:
@@ -64,43 +48,6 @@
                   - "traefik.azure.frontend.rule=Host:{{ domain_name }};Path:/.well-known/microsoft-identity-association.json"
                   - "traefik.azure.frontend.headers.customResponseHeaders=Content-Type:application/json||Content-Length:112"
                   - "traefik.docker.network=traefiknet"
-
-          celery-worker:
-            <<: *defaults
-            image: vsevolodskripnik/vsevoland-backend
-            command: celery -A default worker -Q celery -c 2 -n 'default@%h' --max-tasks-per-child 50
-            healthcheck:
-              disable: true
-
-          celery-beat:
-            <<: *defaults
-            image: vsevolodskripnik/vsevoland-backend
-            command: celery -A default beat
-            healthcheck:
-              disable: true
-
-          celery-flower:
-            <<: *defaults
-            image: vsevolodskripnik/vsevoland-backend
-            command: celery -A default flower --url-prefix=flower
-            healthcheck:
-              disable: true
-
-            networks:
-              - stacknet
-              - traefiknet
-
-            deploy:
-              labels:
-                  - "traefik.enable=true"
-                  - "traefik.port=5555"
-                  - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefixStrip:/flower"
-                  - "traefik.docker.network=traefiknet"
-
-          redis:
-            image: redis:6.0.2-alpine
-            networks:
-              - stacknet
 
         networks:
           stacknet:
