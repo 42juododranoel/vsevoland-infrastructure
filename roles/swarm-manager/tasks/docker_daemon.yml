@@ -18,10 +18,3 @@
 - name: Make sure docker python module is installed
   pip:
     name: docker
-
-- name: Disable docker iptables usage
-  copy:
-    dest: /etc/docker/daemon.json
-    content: |
-      { "iptables": false }
-    mode: "0644"

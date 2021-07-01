@@ -2,7 +2,7 @@ version: 2.1
 
 defaults: &defaults
   docker:
-    - image: circleci/python:3.7-stretch
+    - image: cimg/python:3.8.6
 
 jobs:
   backup:
@@ -32,7 +32,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+          key: deps-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
 
       - run:
           name: Install Ansible
@@ -49,7 +49,7 @@ jobs:
             ansible-galaxy install -r requirements.yml
 
       - save_cache:
-          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+          key: deps-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
           paths:
             - "venv"
             - "~/.ansible"
@@ -66,7 +66,7 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
+          key: deps-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements.yml" }}
 
       - run:
           name: Restore ansible vault key
