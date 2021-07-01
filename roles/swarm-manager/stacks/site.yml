@@ -4,14 +4,7 @@
     path: /srv/site
     state: directory
 
-- name: Make sure acme.json is present
-  copy:
-    dest: /srv/site/acme.json
-    content: ""
-    force: no
-    mode: 0600
-
-- name: Make sure traefik configuration is actual
+- name: Make sure traefik configuration is good
   template:
     src: templates/traefik.toml.j2
     dest: /srv/site/traefik.toml
@@ -26,20 +19,17 @@
     name: site
     resolve_image: never
     with_registry_auth: true
-    prune: yes
     compose:
       - version: "3.6"
 
         services:
           traefik:
-            image: traefik:1.7.3-alpine
+            image: traefik:1.7.3
             ports:
               - "80:80"
-              - "443:443"
 
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock:ro
-              - /srv/site/acme.json:/acme.json
               - /srv/site/traefik.toml:/traefik.toml
 
             networks:
@@ -76,7 +66,7 @@
               labels:
                 - "traefik.enable=true"
                 - "traefik.port=9000"
-                - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefixStrip:/portainer"
+                - "traefik.frontend.rule=Host:{{ domain_name }}; PathPrefixStrip:/cluster-mgmt"
                 - "traefik.docker.network=traefiknet"
 
             volumes:

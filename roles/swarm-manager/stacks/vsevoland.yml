@@ -26,9 +26,10 @@
         x-defaults: &defaults
           env_file:
             - /srv/vsevoland/env
-
           networks:
             - stacknet
+          deploy:
+            <<: *deploy
 
         services:
           frontend:
@@ -44,9 +45,7 @@
               labels:
                   - "traefik.enable=true"
                   - "traefik.port=3000"
-                  - "traefik.common.frontend.rule=Host:{{ domain_name }}"
-                  - "traefik.azure.frontend.rule=Host:{{ domain_name }};Path:/.well-known/microsoft-identity-association.json"
-                  - "traefik.azure.frontend.headers.customResponseHeaders=Content-Type:application/json||Content-Length:112"
+                  - "traefik.frontend.rule=Host:{{ domain_name }}"
                   - "traefik.docker.network=traefiknet"
 
         networks:

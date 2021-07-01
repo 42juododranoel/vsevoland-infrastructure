@@ -1,34 +1,13 @@
-defaultEntryPoints = ["http", "https"]
+defaultEntryPoints = ["http"]
 
 [entryPoints]
   [entryPoints.http]
   address = ":80"
 
-    [entryPoints.http.redirect]
-    entryPoint = "https"
-
-  [entryPoints.https]
-  address = ":443"
-  compress = true
-
-    [entryPoints.https.tls]
-
-[http.middlewares]
-  [http.middlewares.test-compress.compress]
-
 [docker]
 exposedByDefault = false
 swarmMode = true
 watch = true
-
-[acme]
-email = "{{ letsencrypt_email }}"
-storage = "acme.json"
-entryPoint = "https"
-onHostRule = true
-
-[acme.httpChallenge]
-entryPoint = "http"
 
 [retry]
 attempts = 3
